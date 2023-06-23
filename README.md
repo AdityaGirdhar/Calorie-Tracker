@@ -1,4 +1,4 @@
-# Flask-based Full-Stack Tasks API
+# Calorie Tracking REST API
 
 ## Getting started
 
@@ -34,3 +34,9 @@ python backend/app.py
 
 For a complete API reference, refer to `backend/README.md`.
 
+## Citations and References
+Here is a (non-exhaustive) list of online resources I referred to while working on this project.
+
+- Flask Documentation (v2.3.x) - [https://flask.palletsprojects.com/en/2.3.x/](https://flask.palletsprojects.com/en/2.3.x/)
+- SQLAlchemy 2.0 Documentation - [https://docs.sqlalchemy.org/en/20/](https://docs.sqlalchemy.org/en/20/)
+- Role-based Access Control (RBAC) in REST APIs - [https://medium.com/@BastianRob/rbac-in-rest-api-b6ed65d1f4d8](https://medium.com/@BastianRob/rbac-in-rest-api-b6ed65d1f4d8)
