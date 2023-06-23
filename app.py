@@ -1,4 +1,4 @@
-from flask import Flask, redirect, url_for, flash, abort
+from flask import Flask, redirect, url_for, flash, abort, jsonify
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from config import Config
 from models import db, User, Entry
@@ -66,6 +66,59 @@ def admin_dashboard():
         # Handle unauthorized access
         pass
     # Rest of the route logic for admin users
+
+
+"""
+# ERROR HANDLING #
+
+Errors are returned as JSON and are formatted in the following manner:
+
+	{
+		"success": False,
+		"error": error_code,
+		"message": descriptive_reason
+	}
+
+"""
+@app.errorhandler(404)
+def not_found(error):
+	return jsonify({
+		'success': False,
+		'error': 404,
+		'message': 'Resource not found'
+	}), 404
+
+@app.errorhandler(500)
+def server_error(error):
+	return jsonify({
+		'success': False,
+		'error': 500,
+		'message': 'Internal server error'
+	}), 500
+
+@app.errorhandler(422)
+def unprocessable(error):
+	return jsonify({
+		'success': False,
+		'error': 422,
+		'message': 'Unprocessable'
+	}), 422
+
+@app.errorhandler(400)
+def bad_request(error):
+	return jsonify({
+		'success': False,
+		'error': 400,
+		'message': 'Bad request',
+	}), 400
+ 
+@app.errorhandler(403)
+def forbidden(error):
+	return jsonify({
+		'success': False,
+		'error': 403,
+		'message': 'Resource forbidden',
+	}), 403
 
 if __name__ == '__main__':
     app.run(debug=True)
