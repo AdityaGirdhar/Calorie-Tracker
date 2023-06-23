@@ -1,11 +1,15 @@
-from flask import Flask, redirect, url_for, flash, abort, jsonify
+from flask import Flask, redirect, url_for, flash, abort, jsonify, render_template, request
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
-from config import Config
 from models import db, User, Entry
-from requests import request
+from config import Config
+
+import os
+from dotenv import load_dotenv
+load_dotenv()
 
 app = Flask(__name__)
 app.config.from_object(Config)
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 db.init_app(app)
 
 login_manager = LoginManager(app)
@@ -20,29 +24,64 @@ def home():
     return "Welcome to Dive's Calorie Tracker API."
 
 # Example login route
-@app.route('/login', methods=['POST'])
+@app.route('/login', methods=['GET', 'POST'])
 def login():
-    username = request.form.get('username')
-    password = request.form.get('password')
+	if request.method == 'POST':
+		username = request.form.get('username')
+		password = request.form.get('password')
 
-    # Retrieve the user from the database based on the username
-    user = User.query.filter_by(username=username).first()
+		# Retrieve the user from the database based on the username
+		user = User.query.filter_by(username=username).first()
+		if user and user.check_password(password):
+			# If the user exists and the password is correct, log in the user
+			login_user(user)
+			# Rest of the login logic
+			flash('Logged in successfuly', 'success')
+			return redirect(url_for('login'))
+		else:
+			# Invalid credentials, handle authentication failure
+			flash('Invalid username or password', 'danger')
+			return redirect(url_for('login'))
+		# Validate user credentials
+		# ...
+		# Assuming user is the authenticated user object
+		user
+		login_user(user)
+		# Rest of the login logic
+	return render_template('login.html')
+    
+@app.route('/signup', methods=['GET', 'POST'])
+def signup():
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+        expected_calories = int(request.form.get('expected_calories'))
 
-    if user and user.check_password(password):
-        # If the user exists and the password is correct, log in the user
-        login_user(user)
-        # Rest of the login logic
-        return redirect(url_for('dashboard'))
-    else:
-        # Invalid credentials, handle authentication failure
-        flash('Invalid username or password', 'error')
-        return redirect(url_for('login'))
-    # Validate user credentials
-    # ...
-    # Assuming user is the authenticated user object
-    user
-    login_user(user)
-    # Rest of the login logic
+        # Check if the username is already taken
+        existing_user = User.query.filter_by(username=username).first()
+        if existing_user:
+            flash('Username already exists. Please choose a different username.', 'warning')
+            return redirect('/signup')
+
+        # Create a new user object
+        new_user = User(username=username, expected_calories=expected_calories, role='user')
+        new_user.set_password(password)
+
+        # Add the new user to the database
+        db.session.add(new_user)
+        db.session.commit()
+
+        flash('Account created successfully! You can now log in.', 'success')
+        return redirect('/signup')
+
+    return render_template('signup.html')
+
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    flash('You have been logged out successfully.', 'primary')
+    return redirect(url_for('login'))
     
 # Example protected route
 @app.route('/dashboard')
@@ -121,4 +160,6 @@ def forbidden(error):
 	}), 403
 
 if __name__ == '__main__':
+    with app.app_context():
+        db.create_all()
     app.run(debug=True)
