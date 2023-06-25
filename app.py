@@ -316,6 +316,32 @@ def delete_records():
 	else:
 		abort(403)
     
+@app.route('/records', methods=['PUT'])
+@login_required
+def put_records():
+	user = current_user
+	if user.role == 'user' or user.role == 'admin':
+		data = request.get_json()
+		if 'id' not in data:
+			abort(400)
+		record = Entry.query.filter_by(id=data['id']).first()
+		if not record:
+			return jsonify({
+				'success': False,
+				'error': 400,
+				'message': 'Record does not exist'
+			})
+		if user.role == 'user' and user.id != record.user_id:
+			abort(403)
+		if 'calories' in data:
+			record.calories = data['calories']
+		if 'text' in data:
+			record.calories = data['text']
+		db.session.commit()
+		return jsonify({
+			'success': True,
+			'message': 'Successfully modified'
+		})
 
 """
 # ERROR HANDLING #
