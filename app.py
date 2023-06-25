@@ -218,6 +218,7 @@ def get_records():
 		user_id = current_user.id
 		entries = Entry.query.filter_by(user_id=user_id).all()
 		records = [{
+			'id': entry.id,
 			'text': entry.text,
 			'date': str(entry.date),
 			'time': str(entry.time),
@@ -234,6 +235,7 @@ def get_records():
 				continue
 			entries = Entry.query.filter_by(user_id=user.id).all()
 			records = [{
+				'id': entry.id,
 				'text': entry.text,
 				'date': str(entry.date),
 				'time': str(entry.time),
@@ -285,6 +287,35 @@ def post_records():
 			'success': True,
 			'message': 'Added record'
 		})
+	else:
+		abort(403)
+  
+@app.route('/records', methods=['DELETE'])
+@login_required
+def delete_records():
+	user = current_user
+	if user.role == 'user' or user.role == 'admin':
+		data = request.get_json()
+		if 'id' not in data:
+			abort(400)
+		record = Entry.query.filter_by(id=data['id']).first()
+		if not record:
+			return jsonify({
+				'success': False,
+				'error': 400,
+				'message': 'Record does not exist'
+			})
+		if user.role == 'user' and user.id != record.user_id:
+			abort(403)
+		db.session.delete(record)
+		db.session.commit()
+		return jsonify({
+			'success': True,
+			'message': 'Successfully removed'
+		})
+	else:
+		abort(403)
+    
 
 """
 # ERROR HANDLING #
