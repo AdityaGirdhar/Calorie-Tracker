@@ -406,19 +406,12 @@ def post_records():
 			else:
 				data['calories'] = calories
 				data['text'] = food_name
-		calories_sum = 0
-		# This piece of code can be optimised by modifying database design and including a calories_sum that resets to 0 each day, preventing recomputation on each POST
-		for record in Entry.query.filter_by(date=datetime.now().date()).all():
-			calories_sum += record.calories
-		calories_sum += int(data['calories'])
-		expected_calories = User.query.filter_by(id=user_id).first().expected_calories
 		entry = Entry (
 			user_id = user_id,
 			date = datetime.now().date(),
 			time = datetime.now().time(),
 			text = data['text'],
 			calories = data['calories'],
-			is_below_expected = (calories_sum < expected_calories)
 		)
 		db.session.add(entry)
 		db.session.commit()
