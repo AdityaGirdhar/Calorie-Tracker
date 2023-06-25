@@ -34,6 +34,13 @@ python backend/app.py
 
 For a complete API reference, refer to `backend/README.md`.
 
+## Assumptions/Choices
+1 . The requirement document says
+
+> "a regular user would only be able to CRUD on their owned records, a user manager would be able to CRUD only users, and an admin would be able to CRUD all records and users."
+
+It's slightly ambiguous as to whether a manager can CRUD another manager or not, but for the purpose of this project I have assumed they can't.
+
 ## Citations and References
 Here is a (non-exhaustive) list of online resources I referred to while working on this project.
 
