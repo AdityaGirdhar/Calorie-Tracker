@@ -9,8 +9,8 @@ This project uses a virtual environment (venv) to isolate dependancies and preve
 
 ```
 source backend/{env-name}/bin/activate
-``` 
-(assuming `env-name` is the name of your virtual environment)
+```
+(assuming `{env-name}` is the name of your virtual environment)
 
 Once your virtual environment is ready, run:
 
@@ -26,12 +26,36 @@ Before proceeding ensure that your virtual environment has been activated. Not d
 python backend/app.py
 ```
 
+## Testing Suite
+
+To run tests, add the following line to `.env`
+
+```
+FLASK_ENV='test'
+```
+
+Then run either of the following commands:
+
+```
+python test_models.py
+python test_app.py
+```
+
+or
+
+```
+python -m unittest test_models.py
+python -m unittest test_app.py
+```
+
+> Note: Running test_app.py might take longer than expected as it also tests data fetching from the Nutritionix API
+
 ## API Reference
 
 ### Overview
 * Base URL: The backend is assumed to be hosted at `http://127.0.0.1:5000`.
-* Authentication: This section will be updated as authentication support is added
-* All responses have a 'success' key which is a boolean value
+* Authentication: Cookie-based authentication using the Flask-Login library
+* All responses from the API have a 'success' key which has a boolean value
 
 For a complete API reference, refer to `backend/README.md`.
 
@@ -43,6 +67,8 @@ For a complete API reference, refer to `backend/README.md`.
 It's slightly ambiguous as to whether a manager can CRUD another manager or not, but for the purpose of this project I have assumed they can't.
 
 2 . Once a user has logged in, should access to the login page be blocked? While it makes sense from a UX perspective, here I decided to override the current session and log the new user in, in case a session was already active when a request was sent to `/login`.
+
+3 . Should a user be allowed to delete their own account? For the purposes of this project, I assumed all users and managers (but not the super user with username 'admin') can delete their own accounts.
 
 ## Citations and References
 Here is a (non-exhaustive) list of online resources I referred to while working on this project.

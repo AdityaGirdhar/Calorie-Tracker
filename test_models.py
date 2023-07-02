@@ -22,11 +22,17 @@ class UserModelTestCase(unittest.TestCase):
 	
 class TestBackReference(unittest.TestCase):
 	def setUp(self):
-    	# Step 1: Initialize a database instance
+		# Step 1: Initialize a database instance
 		self.app = app.test_client()
 		self.app_context = app.app_context()
 		self.app_context.push()
+		app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///test.db'
 		db.create_all()
+		if not User.query.filter_by(username='admin').first():
+			new_user = User(username='admin', expected_calories=2000, role='admin')
+			new_user.set_password('admin')
+			db.session.add(new_user)
+			db.session.commit()
 
 	def tearDown(self):
 		db.session.remove()
@@ -54,35 +60,34 @@ class TestBackReference(unittest.TestCase):
 			self.assertIn(entry, user.entries)
    
 class TestCalculateIsBelowExpected(unittest.TestCase):
-    def setUp(self):
-        self.app = app.test_client()
-        self.app_context = app.app_context()
-        self.app_context.push()
-        db.create_all()
+	def setUp(self):
+		self.app = app.test_client()
+		self.app_context = app.app_context()
+		self.app_context.push()
+		app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///test.db'
+		db.create_all()
 
-    def tearDown(self):
-        db.session.remove()
-        db.drop_all()
-        self.app_context.pop()
+	def tearDown(self):
+		self.app_context.pop()
 
-    def test_calculate_is_below_expected(self):
-        # Create a new user with an expected calorie value
-        user = User(username='test_user', role='user', expected_calories=2000)
-        user.set_password('sample_password')
-        db.session.add(user)
-        
-        user = User.query.filter_by(username='test_user').first()
+	def test_calculate_is_below_expected(self):
+		# Create a new user with an expected calorie value
+		user = User(username='test_user', role='user', expected_calories=2000)
+		user.set_password('sample_password')
+		db.session.add(user)
+		
+		user = User.query.filter_by(username='test_user').first()
 
-        # Create multiple entries for different dates with different calorie values
-        for i in range(3):
-            entry = Entry(user_id=user.id, date=date(2023, 6, 18), time=time(12, 0), text=f'Entry {i}', calories=1000*i)
-            db.session.add(entry)
-        
-        entries = Entry.query.all()
+		# Create multiple entries for different dates with different calorie values
+		for i in range(3):
+			entry = Entry(user_id=user.id, date=date(2023, 6, 18), time=time(12, 0), text=f'Entry {i}', calories=1000*i)
+			db.session.add(entry)
+		
+		entries = Entry.query.all()
 
-        # Iterate over the entries and assert the value of is_below_expected
-        for entry in entries:
-            self.assertEqual(entry.is_below_expected, entry.calories < user.expected_calories)
+		# Iterate over the entries and assert the value of is_below_expected
+		for entry in entries:
+			self.assertEqual(entry.is_below_expected, entry.calories < user.expected_calories)
 
 if __name__ == '__main__':
 	unittest.main()

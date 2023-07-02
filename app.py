@@ -1,7 +1,7 @@
 from flask import Flask, redirect, url_for, flash, abort, jsonify, render_template, request
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from models import db, User, Entry
-from config import Config
+from config import Config, TestConfig
 from nutritionix import get_calories
 from datetime import datetime, date, time
 
@@ -32,7 +32,10 @@ def get_paginated_filtered_records(user_id, date=None, text=None, calories_min=N
 	return records, total_count
 
 app = Flask(__name__)
-app.config.from_object(Config)
+if os.getenv('FLASK_ENV') == 'test':
+	app.config.from_object(TestConfig)
+else:
+	app.config.from_object(Config)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 db.init_app(app)
 
@@ -122,7 +125,6 @@ def get_users():
 	# Get the query parameters for filtering
 	username = data['username'] if 'username' in data else None
 	user_id = data['user_id'] if 'user_id' in data else None
-	print(user_id)
 	role = data['role'] if 'role' in data else None
 	base_query = User.query
 
@@ -154,27 +156,27 @@ def get_users():
 		res = { 'users' : [], 'managers' : [], 'admins' : [] }
 		for user in records:
 			res[user.role + 's'].append({ 'user_id': user.id, 'username': user.username, 'expected_calories': user.expected_calories})
-		return jsonify({ 'users': res, 'total_count': total_count, 'page': page, 'limit': limit })
+		return jsonify({ 'success': True, 'users': res, 'total_count': total_count, 'page': page, 'limit': limit })
 
 	# Only allow access if user's role is manager or admin
 	if (current_user.role == 'manager' or current_user.role == 'admin'):
 		res = { 'users' : [], 'managers' : [], 'admins' : [] }
 		for user in records:
 			res[user.role + 's'].append({ 'user_id': user.id, 'username': user.username, 'expected_calories': user.expected_calories})
-		return jsonify({ 'users': res, 'total_count': total_count, 'page': page, 'limit': limit })
+		return jsonify({ 'success': True, 'users': res, 'total_count': total_count, 'page': page, 'limit': limit })
 	else:
 		abort(403)
   
 @app.route('/users', methods=['PUT'])
 @login_required
 def post_users():
-	if (current_user.role == 'user'):
-		data = request.get_json()
-		try:
-			expected_calories = data['expected_calories']
-		except:
-			abort(400)
-		user = User.query.filter_by(username=current_user.username).first()
+	data = request.get_json()
+	if ('expected_calories' in data and (current_user.role in {'user', 'manager'})):
+		expected_calories = data['expected_calories']
+		user_id = current_user.id
+		if (current_user.role == 'manager' and 'user_id' in data):
+			user_id = data['user_id']
+		user = User.query.filter_by(id=user_id).first()
 		user.expected_calories = expected_calories
 		db.session.commit()
 		return jsonify({
@@ -184,7 +186,6 @@ def post_users():
 
 	# Only allow access to change role if user's role is manager or admin
 	if (current_user.role == 'manager' or current_user.role == 'admin'):
-		data = request.get_json()
 		try:
 			username = data['username']
 			role = data['role']
@@ -216,6 +217,7 @@ def post_users():
 				'error': 400,
 				'message': f'User {username} does not exist'
 			})
+	abort(400)
 
 @app.route('/users', methods=['DELETE'])
 @login_required
@@ -226,10 +228,15 @@ def delete_users():
 	except:
 		abort(400)
 	if current_user.username == username:
+		if (current_user.username == 'admin'):
+			abort(400)
+		user = User.query.filter_by(username=username).first()
+		logout_user()
+		db.session.delete(user)
+		db.session.commit()
 		return jsonify({
-			'success': False,
-			'error': 422,
-			'message': 'Can not delete self'
+			'success': True,
+			'message': 'Successfully deleted'
 		})
 
 	if (current_user.role in {'manager', 'admin'}):
@@ -268,6 +275,7 @@ def logout():
 def session():
 	user = current_user
 	return jsonify({
+		'success': True, 
 		'username': user.username,
 		'role': user.role
 	})
@@ -310,6 +318,7 @@ def get_records():
 		} for entry in records]
 
 		return jsonify({
+			'success': True, 
 			'records': records_formatted,
 			'total_count': total_count,
 			'page': page,
@@ -323,6 +332,7 @@ def get_records():
 		if id:
 			entry = Entry.query.filter_by(id=id).first()
 			return jsonify({
+				'success': True, 
 				'records': ({
 					'id': entry.id,
 					'text': entry.text,
@@ -346,6 +356,7 @@ def get_records():
 			} for entry in records]
 
 			return jsonify({
+				'success': True,
 				'records': records_formatted,
 				'total_count': total_count,
 				'page': page,
@@ -376,6 +387,7 @@ def get_records():
 			user_records[user.username] = records_formatted
    
 		return jsonify({
+			'success': True, 
 			'records': user_records
 		})
 	else:
