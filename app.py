@@ -50,7 +50,6 @@ def load_user(user_id):
 def home():
 	return "Welcome to Calorie Tracker API."
 
-# Example login route
 @app.route('/login', methods=['POST'])
 def login():
 	data = request.get_json()
