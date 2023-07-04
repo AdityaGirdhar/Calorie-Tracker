@@ -12,12 +12,6 @@
 - The API provides filter capabilities and supports pagination when fetching user details and calorie records
 - Extensive unit tests and end-to-end tests have been included for the project
 
-## Best Practices Followed
-- All errors include an HTTP error code
-- Filter capabilities and pagination support is provided for endpoints which send large amounts of data
-- Nouns are preferred over verbs for naming most endpoints
-- JSON is used across the board for all requests and responses sent or received
-
 # Getting Started
 
 ## Installating Dependancies
