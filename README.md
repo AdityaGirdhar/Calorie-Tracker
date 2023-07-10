@@ -1,34 +1,17 @@
-# Calorie Tracking REST API
+# Full Stack Calorie Tracking API
 
-## Features
-- The project is written in Flask and uses SQLite as the database
-- Users can create accounts and log in
-- All API calls are authenticated
-- There are three user privellege levels: `user` (who can CRUD their own records), `manager` (who can CRUD users) and `admin` who can CRUD all users and records.
-- Each entry has a `date`, `time`, `text`, `number_of_calories` and a boolean value `is_below_expected` which denotes whether the person met their daily requirements after consumption
-- In case `calories` is not supplied in a request, a call is made to the Nutritionix API to try getting the number of calories in the entered meal
-- Users are asked to supply `expected_calories` when signing up, but this value can be changed by them as many times they want, whenever they want
-- All data is sent and received strictly in JSON format
-- The API provides filter capabilities and supports pagination when fetching user details and calorie records
-- Extensive unit tests and end-to-end tests have been included for the project
+This application allows users to log their daily calories, check whether they've met their daily requirement and fetch calories for food items which don't come with nutritional information. The main tasks were to create a Flask RESTful API, essential database models, and a test suite for implementing the following functionality:
 
-## Best Practices Followed
-- All errors include an HTTP error code
-- Filter capabilities and pagination support is provided for endpoints which send large amounts of data
-- Nouns are preferred over verbs for naming most endpoints
-- JSON is used across the board for all requests and responses sent or received
+1. Users can create new accounts and log in to existing accounts
+2. All API calls are authenticated
+3. There are three user privellege levels: `user`, `manager` and `admin`
+4. The API provides filter capabilities and supports pagination when fetching user details and calorie records
+5. In case number of calories is not supplied in a request, a call is made to the Nutritionix API get the number of calories in the entered meal
 
 # Getting Started
 
 ## Installating Dependancies
 Developers using this project must have [python3](https://www.python.org/downloads/) and [pip](https://pip.pypa.io/en/stable/installation/) installed.
-
-This project uses a virtual environment (venv) to isolate dependancies and prevent version conflicts (optional, but recommended). If you're using a python virtual environment as well, open your terminal and run:
-
-```
-source {env-name}/bin/activate
-```
-(assuming `{env-name}` is the name of your virtual environment)
 
 Once your virtual environment is ready, run:
 
